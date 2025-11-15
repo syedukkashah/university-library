@@ -33,4 +33,4 @@ const BookCard = ({id, title,  genre, coverColor, coverUrl, isLoanedBook = false
   )
 }
 
-export default BookCard
+export default BookCard;

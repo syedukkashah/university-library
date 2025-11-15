@@ -1,9 +1,44 @@
-import React from 'react'
+"use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  DefaultValues,
+  FieldValues,
+  SubmitHandler,
+  useForm,
+  UseFormReturn,
+  Controller,
+} from "react-hook-form";
+import { z, ZodType } from "zod";
+import { Field, FieldContent, FieldError, FieldLabel } from "./ui/field";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import Link from "next/link";
+import { FIELD_NAMES, FIELD_TYPES } from "@/constants";
+import ImageUpload from "./ImageUpload";
 
-//interface Props<T extends FieldValues>
+interface Props<T extends FieldValues> {
+  schema: ZodType<T>;
+  defaultValues: T;
+  onSubmit: (data: T) => Promise<{ success: boolean; error?: string }>;
+  type: "SIGN_IN" | "SIGN_UP";
+}
 
-const AuthForm = ({type, schema, defaultValues, onSubmit}: Props) => {
+const AuthForm = <T extends FieldValues>({
+  type,
+  schema,
+  defaultValues,
+  onSubmit,
+}: Props<T>) => {
+  const isSignIn = type === "SIGN_IN";
+
+  const form: UseFormReturn<T> = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: defaultValues as DefaultValues<T>,
+  });
+
+  const handleSubmit: SubmitHandler<T> = async (data) => {};
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold text-white">
@@ -18,34 +53,48 @@ const AuthForm = ({type, schema, defaultValues, onSubmit}: Props) => {
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-6 w-full"
       >
-        {Object.keys(defaultValues).map((fieldName) => (
-          <Controller
-            key={fieldName}
-            control={form.control}
-            name={fieldName as any}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={fieldName}>
-                  {fieldName.charAt(0).toUpperCase() +
-                    fieldName.slice(1).replace(/([A-Z])/g, " $1")}
-                </FieldLabel>
-                <FieldContent>
-                  <Input
-                    id={fieldName}
-                    placeholder={`Enter your ${fieldName.replace(/([A-Z])/g, " $1").toLowerCase()}`}
-                    {...field}
-                    aria-invalid={fieldState.invalid}
-                  />
-                  <FieldError
-                    errors={fieldState.error ? [fieldState.error] : undefined}
-                  />
-                </FieldContent>
-              </Field>
-            )}
-          />
-        ))}
+        {Object.keys(defaultValues).map((fieldName) => {
+          const fieldLabel =
+            FIELD_NAMES[fieldName as keyof typeof FIELD_NAMES] ||
+            fieldName.charAt(0).toUpperCase() +
+              fieldName.slice(1).replace(/([A-Z])/g, " $1");
+          const fieldType =
+            FIELD_TYPES[fieldName as keyof typeof FIELD_TYPES] || "text";
 
-        <Button type="submit">Submit</Button>
+          return (
+            <Controller
+              key={fieldName}
+              control={form.control}
+              name={fieldName as any}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={fieldName}>{fieldLabel}</FieldLabel>
+                  <FieldContent>
+                    {fieldName === "universityCard" ? (
+                      <ImageUpload {...field} />
+                    ) : (
+                      <Input
+                        id={fieldName}
+                        type={fieldType}
+                        className="form-input"
+                        required
+                        {...field}
+                        aria-invalid={fieldState.invalid}
+                      />
+                    )}
+                    <FieldError
+                      errors={fieldState.error ? [fieldState.error] : undefined}
+                    />
+                  </FieldContent>
+                </Field>
+              )}
+            />
+          );
+        })}
+
+        <Button type="submit" className="form-btn">
+          {isSignIn ? "Sign in" : "Sign Up"}
+        </Button>
       </form>
       <p className="text-center text-base font-medium">
         {isSignIn ? "New to BookMyst?" : "Already have an account?"}{" "}
