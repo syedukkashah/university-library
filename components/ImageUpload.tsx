@@ -39,13 +39,75 @@ interface ImageUploadProps {
 const ImageUpload = ({ onChange, onBlur, value, name }: ImageUploadProps) => {
   const ikUploadRef = useRef<any>(null);
 
+  // Valid image MIME types
+  const validImageTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+    "image/bmp",
+  ];
+
+  // Valid image file extensions
+  const validExtensions = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".webp",
+    ".svg",
+    ".bmp",
+  ];
+
+  const validateFileType = (file: File): boolean => {
+    // Check MIME type
+    if (!validImageTypes.includes(file.type)) {
+      return false;
+    }
+
+    // Double-check by extension
+    const fileName = file.name.toLowerCase();
+    const hasValidExtension = validExtensions.some((ext) =>
+      fileName.endsWith(ext)
+    );
+
+    return hasValidExtension;
+  };
+
   const onError = (error: any) => {
     console.log(error);
     toast.error("Failed to upload image");
   };
 
-  const onSuccess = (res: any) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && !validateFileType(file)) {
+      toast.error(
+        "Invalid file type. Please upload an image file (jpg, png, gif, webp, svg, bmp)."
+      );
+      // Reset the input
+      if (ikUploadRef.current) {
+        ikUploadRef.current.value = "";
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+  };
+
+  // Enhanced onSuccess with better validation
+  const handleSuccess = (res: any) => {
     const filePath = res.filePath;
+
+    // Validate file type from response
+    const fileExtension = filePath.toLowerCase().split(".").pop();
+    if (!fileExtension || !validExtensions.includes(`.${fileExtension}`)) {
+      toast.error("Invalid file type. Please upload an image file.");
+      return;
+    }
+
     if (onChange) {
       onChange(filePath);
     }
@@ -68,8 +130,9 @@ const ImageUpload = ({ onChange, onBlur, value, name }: ImageUploadProps) => {
         className="hidden"
         ref={ikUploadRef}
         onError={onError}
-        onSuccess={onSuccess}
-        fileName={`${name || "upload"}-${Date.now()}.png`}
+        onSuccess={handleSuccess}
+        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml,image/bmp"
+        onChange={handleFileChange}
       />
 
       <button
