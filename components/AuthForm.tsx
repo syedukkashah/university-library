@@ -71,7 +71,7 @@ const AuthForm = <T extends FieldValues>({
                   <FieldLabel htmlFor={fieldName}>{fieldLabel}</FieldLabel>
                   <FieldContent>
                     {fieldName === "universityCard" ? (
-                      <ImageUpload {...field} />
+                      <ImageUpload {...field} name={fieldName} />
                     ) : (
                       <Input
                         id={fieldName}

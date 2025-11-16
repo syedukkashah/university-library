@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
+import { Toaster } from "@/components/ui/sonner";
 import { ReactNode } from "react";
 
 const ibmPlexSans = localFont({
@@ -20,7 +21,7 @@ const bebasNeue = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Bookerty",
+  title: "BookMyst",
   description: "A book borrowing university library management solution.",
 };
 const RootLayout = ({ children }: { children: ReactNode }) => {
@@ -30,6 +31,8 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
         className={`${ibmPlexSans.className} ${bebasNeue.variable} antialiased`}
       >
         {children}
+
+        <Toaster />
       </body>
     </html>
   );
