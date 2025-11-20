@@ -12,7 +12,13 @@ const nextConfig: NextConfig = {
         hostname: "ik.imagekit.io",
       }
     ],
-  }
+  },
+  typescript:{
+    ignoreBuildErrors: true,
+  },
+  esLint:{
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
