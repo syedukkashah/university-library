@@ -42,6 +42,7 @@ const AuthForm = <T extends FieldValues>({
 
   const handleSubmit: SubmitHandler<T> = async (data) => {
     const result = await onSubmit(data);
+    console.log("AuthForm result:", result);
 
     if (result.success) {
       toast(
@@ -51,13 +52,27 @@ const AuthForm = <T extends FieldValues>({
       );
       router.push("/");
     } else {
+      // Check if rate limited and redirect
+      const isRateLimited =
+        (result as any).rateLimited ||
+        result.error === "RATE_LIMITED" ||
+        result.error === "RATE_LIMIT_SERVICE_ERROR" ||
+        (result.error && result.error.includes("RATE_LIMIT"));
+      console.log("Is rate limited?", isRateLimited, result);
+
+      if (isRateLimited) {
+        console.log("Redirecting to /too-fast");
+        // Use replace to prevent back button from going to sign-in page
+        router.replace("/too-fast");
+        return;
+      }
       toast(
         `Error ${isSignIn ? "signing in" : "signing up"}: ${
           result.error ?? "An error occurred."
         }`
       );
     }
-    }
+  };
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold text-white">
@@ -126,6 +141,6 @@ const AuthForm = <T extends FieldValues>({
       </p>
     </div>
   );
-}
+};
 
 export default AuthForm;
