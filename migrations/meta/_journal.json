@@ -15,6 +15,13 @@
       "when": 1763744981873,
       "tag": "0001_loving_madame_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1763754581166,
+      "tag": "0002_lush_domino",
+      "breakpoints": true
     }
   ]
 }

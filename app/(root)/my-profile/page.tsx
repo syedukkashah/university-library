@@ -2,7 +2,7 @@ import { signOut } from "@/auth";
 import BookList from "@/components/BookList";
 import { Button } from "@/components/ui/button";
 import React from "react";
-
+import sampleBooks from "@/dummybooks.json";
 const Page = () => {
   return (
     <>
@@ -16,6 +16,7 @@ const Page = () => {
         <Button>Logout</Button>
       </form>
       <BookList title = "Borrowed Books" books = {sampleBooks} />
+   
 </>
   );
 };
