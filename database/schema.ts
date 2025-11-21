@@ -8,6 +8,7 @@ import {
   pgEnum,
   date,
   timestamp,
+  real,
 } from "drizzle-orm/pg-core";
 
 export const STATUS_ENUM = pgEnum("status", [
@@ -41,7 +42,7 @@ export const books = pgTable("books", {
   title: varchar("title", { length: 225 }).notNull(),
   author: varchar("author", { length: 225 }).notNull(),
   genre: text("genre").notNull(),
-  rating: integer("rating").notNull(),
+  rating: real("rating").notNull(),
   coverUrl: text("cover_url").notNull(),
   coverColor: varchar("cover_color", { length: 7 }).notNull(),
   description: text("description").notNull(),

@@ -30,7 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!isPasswordValid) return null;
 
         return {
-          id: user[0].toString(),
+          id: String(user[0].id),
           email: user[0].email,
           name: user[0].fullName,
         } as User;
@@ -43,14 +43,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        // Ensure ID is always stored as a string
+        token.id = typeof user.id === "string" ? user.id : String(user.id);
         token.name = user.name;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
+        // Ensure ID is always a string when setting it in session
+        const tokenId = token.id;
+        session.user.id =
+          typeof tokenId === "string" ? tokenId : String(tokenId);
         session.user.name = token.name as string;
       }
       return session;

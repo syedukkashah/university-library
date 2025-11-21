@@ -19,6 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import FileUpload from "@/components/FileUpload";
 import ColorPicker from "../ColorPicker";
+import { createBook } from "@/lib/admin/actions/book";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface BookFormProps {
   type?: "create" | "update";
@@ -31,6 +34,7 @@ const BookForm = ({
   defaultValues,
   onSubmit: handleSubmitExternal,
 }: BookFormProps) => {
+  const router = useRouter();
   const form = useForm<z.infer<typeof bookSchema>>({
     resolver: zodResolver(bookSchema),
     defaultValues: {
@@ -51,6 +55,15 @@ const BookForm = ({
   const onSubmit = async (values: z.infer<typeof bookSchema>) => {
     if (handleSubmitExternal) {
       await handleSubmitExternal(values);
+      return; // Exit early if external handler is provided
+    }
+
+    const result = await createBook(values);
+    if (result.success) {
+      toast.success("Book created successfully");
+      router.push(`/admin/books/${result.data.id}`);
+    } else {
+      toast.error("Book could not be created");
     }
   };
 
@@ -135,6 +148,7 @@ const BookForm = ({
                   type="number"
                   min={1}
                   max={5}
+                  step="0.1"
                   required
                   placeholder="Book rating"
                   className="book-form_input"
@@ -237,6 +251,9 @@ const BookForm = ({
           render={({ field }) => (
             <FormItem className="flex flex-col gap-1">
               <FormLabel className="text-base font-normal text-dark-500">
+                Book Trailer
+              </FormLabel>
+              <FormControl>
                 <FileUpload
                   type="video"
                   accept="video/*"
@@ -246,8 +263,7 @@ const BookForm = ({
                   onFileChange={field.onChange}
                   value={field.value}
                 />
-              </FormLabel>
-              <FormControl></FormControl>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

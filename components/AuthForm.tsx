@@ -50,7 +50,13 @@ const AuthForm = <T extends FieldValues>({
           ? "You have successfully signed in"
           : "You have successfully signed up"
       );
-      router.push("/");
+      // Redirect based on user role
+      const userRole = (result as any).role;
+      if (userRole === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     } else {
       // Check if rate limited and redirect
       const isRateLimited =

@@ -6,6 +6,7 @@ import { hash } from "bcryptjs";
 import { signIn } from "@/auth";
 import { headers } from "next/headers";
 import ratelimit from "../ratelimit";
+
 export const signInWithCredentials = async (
   params: Pick<AuthCredentials, "email" | "password">, //picking email and pswd from auth creds
   skipRateLimit?: boolean // Allow skipping rate limit for internal calls
@@ -68,8 +69,21 @@ export const signInWithCredentials = async (
       console.log("❌ Authentication failed:", result.error);
       return { success: false, error: result.error };
     }
-    console.log("✅ Authentication successful");
-    return { success: true };
+
+    // Get user role to determine redirect
+    const user = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    const userRole = user[0]?.role || "USER";
+    console.log("✅ Authentication successful, user role:", userRole);
+
+    return {
+      success: true,
+      role: userRole,
+    };
   } catch (error) {
     console.log("❌ Signin error:", error);
     return { success: false, error: "Signin error" };
@@ -137,8 +151,12 @@ export const signUp = async (params: AuthCredentials) => {
       universityCard,
     });
 
-    await signInWithCredentials({ email, password }, true); // Skip rate limit for internal call
-    return { success: true };
+    const signInResult = await signInWithCredentials({ email, password }, true); // Skip rate limit for internal call
+    // New users are always "USER" by default
+    return {
+      success: signInResult.success,
+      role: "USER",
+    };
   } catch (error) {
     console.log(error, "Signup error");
     return { success: false, error: "Signup error" };
