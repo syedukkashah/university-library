@@ -15,7 +15,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import Link from "next/link";
 import { FIELD_NAMES, FIELD_TYPES } from "@/constants";
-import ImageUpload from "./ImageUpload";
+import FileUpload from "./FileUpload";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -105,7 +105,18 @@ const AuthForm = <T extends FieldValues>({
                   <FieldLabel htmlFor={fieldName}>{fieldLabel}</FieldLabel>
                   <FieldContent>
                     {fieldName === "universityCard" ? (
-                      <ImageUpload {...field} name={fieldName} />
+                      <FileUpload
+                        type="image"
+                        accept="image/*"
+                        placeholder="Upload your ID"
+                        folder="university-cards"
+                        variant="dark"
+                        value={field.value}
+                        onChange={field.onChange}
+                        onFileChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={fieldName}
+                      />
                     ) : (
                       <Input
                         id={fieldName}
