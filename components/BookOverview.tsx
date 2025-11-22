@@ -5,6 +5,8 @@ import BorrowBook from "./BorrowBook";
 import { users } from "@/database/schema";
 import { db } from "@/database/drizzle";
 import { eq } from "drizzle-orm";
+import type { Book } from "@/types";
+
 interface Props extends Book {
   userId: string;
 }
@@ -27,12 +29,15 @@ const BookOverview = async ({
     .where(eq(users.id, userId))
     .limit(1);
 
-    if(!user) return null;
+  if (!user) return null;
 
-    const borrowingEligibility = {
-      isEligible: availableCopies > 0 && user?.status === "APPROVED",
-      message: availableCopies <= 0 ? 'Book is not available' : 'You are not eligible to borrow this book'
-    }
+  const borrowingEligibility = {
+    isEligible: availableCopies > 0 && user?.status === "APPROVED",
+    message:
+      availableCopies <= 0
+        ? "Book is not available"
+        : "You are not eligible to borrow this book",
+  };
   return (
     <section className="book-overview">
       <div className="flex flex-1 flex-col gap-5">
@@ -63,7 +68,13 @@ const BookOverview = async ({
           </div>
 
           <p className="book-description">{description}</p>
-          {user && <BorrowBook bookID={id} userId={userId} borrowingEligibility = {borrowingEligibility}/>}
+          {user && (
+            <BorrowBook
+              bookId={id}
+              userId={userId}
+              borrowingEligibility={borrowingEligibility}
+            />
+          )}
         </div>
       </div>
       <div className="relative flex flex-1 justify-center">
