@@ -14,21 +14,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         try {
           if (!credentials?.email || !credentials?.password) {
+            console.error("Missing credentials: email or password");
             return null;
           }
+
           const user = await db
             .select()
             .from(users)
             .where(eq(users.email, credentials.email.toString()))
             .limit(1);
-          if (user.length === 0) return null;
+
+          if (user.length === 0) {
+            console.error("User not found:", credentials.email);
+            return null;
+          }
 
           const isPasswordValid = await compare(
             credentials.password.toString(),
             user[0].password
           );
 
-          if (!isPasswordValid) return null;
+          if (!isPasswordValid) {
+            console.error("Invalid password for user:", credentials.email);
+            return null;
+          }
 
           return {
             id: String(user[0].id),
@@ -36,8 +45,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: user[0].fullName,
           } as User;
         } catch (error) {
-          console.error("Auth error:", error);
-          return null;
+          console.error("Auth authorize error:", error);
+          throw error;
         }
       },
     }),
