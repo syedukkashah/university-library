@@ -9,7 +9,7 @@ import {
   UseFormReturn,
   Controller,
 } from "react-hook-form";
-import { z, ZodType } from "zod";
+import { ZodType } from "zod";
 import { Field, FieldContent, FieldError, FieldLabel } from "./ui/field";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -51,7 +51,9 @@ const AuthForm = <T extends FieldValues>({
           : "You have successfully signed up"
       );
       // Redirect based on user role
-      const userRole = (result as any).role;
+      const userRole = (
+        result as { success: boolean; error?: string; role?: string }
+      ).role;
       if (userRole === "ADMIN") {
         router.push("/admin");
       } else {
@@ -60,7 +62,8 @@ const AuthForm = <T extends FieldValues>({
     } else {
       // Check if rate limited and redirect
       const isRateLimited =
-        (result as any).rateLimited ||
+        (result as { success: boolean; error?: string; rateLimited?: boolean })
+          .rateLimited ||
         result.error === "RATE_LIMITED" ||
         result.error === "RATE_LIMIT_SERVICE_ERROR" ||
         (result.error && result.error.includes("RATE_LIMIT"));
@@ -91,26 +94,28 @@ const AuthForm = <T extends FieldValues>({
       </p>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="space-y-6 w-full"
+        className="w-full space-y-6"
       >
-        {Object.keys(defaultValues).map((fieldName) => {
+        {(Object.keys(defaultValues) as Array<keyof T>).map((fieldName) => {
+          const fieldNameStr = String(fieldName);
           const fieldLabel =
             FIELD_NAMES[fieldName as keyof typeof FIELD_NAMES] ||
-            fieldName.charAt(0).toUpperCase() +
-              fieldName.slice(1).replace(/([A-Z])/g, " $1");
+            fieldNameStr.charAt(0).toUpperCase() +
+              fieldNameStr.slice(1).replace(/([A-Z])/g, " $1");
           const fieldType =
             FIELD_TYPES[fieldName as keyof typeof FIELD_TYPES] || "text";
 
           return (
             <Controller
-              key={fieldName}
+              key={fieldNameStr}
               control={form.control}
-              name={fieldName as any}
+              // @ts-expect-error - Dynamic field names from generic type
+              name={fieldName}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={fieldName}>{fieldLabel}</FieldLabel>
+                  <FieldLabel htmlFor={fieldNameStr}>{fieldLabel}</FieldLabel>
                   <FieldContent>
-                    {fieldName === "universityCard" ? (
+                    {fieldNameStr === "universityCard" ? (
                       <FileUpload
                         type="image"
                         accept="image/*"
@@ -121,11 +126,11 @@ const AuthForm = <T extends FieldValues>({
                         onChange={field.onChange}
                         onFileChange={field.onChange}
                         onBlur={field.onBlur}
-                        name={fieldName}
+                        name={fieldNameStr}
                       />
                     ) : (
                       <Input
-                        id={fieldName}
+                        id={fieldNameStr}
                         type={fieldType}
                         className="form-input"
                         required
