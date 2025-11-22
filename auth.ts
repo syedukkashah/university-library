@@ -45,16 +45,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = String(user.id);
-        token.email = user.email;
-        token.name = user.name;
+        token.email = String(user.email);
+        token.name = String(user.name || "");
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = String(token.id);
-        session.user.email = String(token.email);
-        session.user.name = String(token.name);
+        // Ensure values are always strings, never objects
+        session.user.id =
+          typeof token.id === "string" ? token.id : String(token.id || "");
+        session.user.email =
+          typeof token.email === "string"
+            ? token.email
+            : String(token.email || "");
+        session.user.name =
+          typeof token.name === "string"
+            ? token.name
+            : String(token.name || "");
       }
       return session;
     },

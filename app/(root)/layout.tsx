@@ -18,13 +18,14 @@ const Layout = async ({ children }: { children: ReactNode }) => {
     const userId = String(session.user.id);
     const currentDate = new Date().toISOString().slice(0, 10);
 
-    const user = await db
+    const users_result = await db
       .select()
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
 
-    if (user[0].lastActivityDate === currentDate) return;
+    if (!users_result[0] || users_result[0].lastActivityDate === currentDate)
+      return;
 
     await db
       .update(users)
