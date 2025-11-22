@@ -54,13 +54,16 @@ const BookForm = ({ type, ...book }: Props) => {
         bookId: book.id!,
         ...values,
       });
+    } else {
+      // Default to create if type is not specified
+      result = await createBook(values);
     }
 
     if (result?.success) {
       toast({
         title: "Success",
         description:
-          type === "create"
+          type === "create" || !type
             ? "Book created successfully."
             : "Book updated successfully.",
       });
@@ -292,7 +295,7 @@ const BookForm = ({ type, ...book }: Props) => {
         />
 
         <Button type="submit" className="book-form_btn">
-          {type === "create" ? "Add Book" : "Update Book"}
+          {type === "update" ? "Update Book" : "Add Book"}
         </Button>
       </form>
     </Form>

@@ -7,8 +7,12 @@ import { db } from "@/database/drizzle";
 import { users } from "@/database/schema";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   session: {
     strategy: "jwt",
+  },
+  pages: {
+    signIn: "/sign-in",
   },
   providers: [
     CredentialsProvider({
@@ -38,9 +42,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  pages: {
-    signIn: "/signin",
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
