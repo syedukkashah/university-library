@@ -48,19 +48,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // Ensure ID is always stored as a string
-        token.id = typeof user.id === "string" ? user.id : String(user.id);
+        token.id = String(user.id);
+        token.email = user.email;
         token.name = user.name;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        // Ensure ID is always a string when setting it in session
-        const tokenId = token.id;
-        session.user.id =
-          typeof tokenId === "string" ? tokenId : String(tokenId);
-        session.user.name = token.name as string;
+        session.user.id = String(token.id);
+        session.user.email = String(token.email);
+        session.user.name = String(token.name);
       }
       return session;
     },
