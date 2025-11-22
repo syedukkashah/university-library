@@ -24,16 +24,18 @@ const Page = async () => {
   const session = await auth();
   if (!session?.user?.id) return;
 
+  const userId = String(session.user.id);
+
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.id, session?.user?.id))
+    .where(eq(users.id, userId))
     .limit(1);
 
   if (!user) redirect("/404");
 
   const { data: borrowedBooks, success } = (await getBorrowedBooks(
-    session?.user?.id
+    userId
   )) as BorrowedBookProps;
 
   return (
@@ -68,9 +70,7 @@ const Page = async () => {
 
             <div className="mt-10">
               <p className="text-lg text-light-100">University</p>
-              <p className="text-2xl font-semibold text-white">
-                FAST-NUCES
-              </p>
+              <p className="text-2xl font-semibold text-white">FAST-NUCES</p>
             </div>
 
             <div className="mt-10">

@@ -14,12 +14,14 @@ const AdminLayout = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
   if (!session?.user?.id) redirect("/sign-in");
 
+  const userId = String(session.user.id);
+
   const isAdmin = await db
     .select({
       isAdmin: users.role,
     })
     .from(users)
-    .where(eq(users.id, session.user?.id))
+    .where(eq(users.id, userId))
     .limit(1)
     .then((res) => res[0].isAdmin === "ADMIN");
 

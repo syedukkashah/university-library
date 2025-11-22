@@ -8,6 +8,7 @@ import BookOverview from "@/components/BookOverview";
 import { auth } from "@/auth";
 import { db } from "@/database/drizzle";
 import { books } from "@/database/schema";
+import { Book } from "@/types";
 
 const Page = async ({ params }: PageProps) => {
   const id = (await params).id;
@@ -22,7 +23,10 @@ const Page = async ({ params }: PageProps) => {
 
   return (
     <>
-      <BookOverview {...book} userId={session?.user?.id as string} />
+      <BookOverview
+        {...book}
+        userId={session?.user?.id ? String(session.user.id) : ""}
+      />
 
       <div className="book-details">
         <div className="flex-[1.5]">
@@ -34,9 +38,9 @@ const Page = async ({ params }: PageProps) => {
           <section className="mt-10 flex flex-col gap-7">
             <h3>Summary</h3>
             <div className="space-y-5 text-xl text-light-100">
-              {book.summary
-                ?.split("\n")
-                .map((line, index) => <p key={index}>{line}</p>)}
+              {book.summary?.split("\n").map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
             </div>
           </section>
         </div>
