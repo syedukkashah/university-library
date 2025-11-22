@@ -1,12 +1,20 @@
 "use client";
 
-import React from "react";
+import { IKImage } from "imagekitio-next";
+
+import BookCoverSvg from "./BookCoverSvg";
+
 import { cn } from "@/lib/utils";
-import BookCoverSvg from "@/components/BookCoverSvg";
-import { IKImage, ImageKitProvider } from "imagekitio-next";
 import config from "@/lib/config";
 
 type BookCoverVariant = "extraSmall" | "small" | "medium" | "regular" | "wide";
+
+interface Props {
+  coverUrl: string;
+  className?: string;
+  coverColor: string;
+  variant?: BookCoverVariant;
+}
 
 const variantStyles: Record<BookCoverVariant, string> = {
   extraSmall: "book-cover_extra_small",
@@ -15,47 +23,42 @@ const variantStyles: Record<BookCoverVariant, string> = {
   regular: "book-cover_regular",
   wide: "book-cover_wide",
 };
-interface Props {
-  className?: string;
-  variant?: BookCoverVariant;
-  coverColor: string;
-  coverImage: string;
-}
 
 const BookCover = ({
   className,
   variant = "regular",
   coverColor = "#012B48",
-  coverImage = "https://placehold.co/400x600.png",
+  coverUrl = "https://placehold.co/400x600.png",
 }: Props) => {
   return (
-    <ImageKitProvider
-      urlEndpoint={config.env.imagekit.urlEndpoint}
-      publicKey={config.env.imagekit.publicKey}
+    <div
+      className={cn(
+        "relative transition-all duration-300",
+        variantStyles[variant],
+        className
+      )}
     >
+      <BookCoverSvg coverColor={coverColor} />
+
       <div
-        className={cn(
-          "relative translate-all duration-300",
-          variantStyles[variant],
-          className
-        )}
+        className="absolute z-10"
+        style={{
+          left: "12%",
+          width: "87.5%",
+          height: "88%",
+        }}
       >
-        <BookCoverSvg coverColor={coverColor} />
-        <div
-          className="absolute z-10"
-          style={{ left: "12%", width: "87.5%", height: "88%" }}
-        >
-          <IKImage
-            path={coverImage}
-            alt="Book Cover"
-            fill
-            className="rounded-sm object-fill"
-            loading = "lazy"
-            lqip = {{active:true}}
-          />
-        </div>
+        <IKImage
+          path={coverUrl}
+          urlEndpoint={config.env.imagekit.urlEndpoint}
+          alt="Book cover"
+          fill
+          className="rounded-sm object-fill"
+          lqip={{ active: true }}
+          loading="lazy"
+        />
       </div>
-    </ImageKitProvider>
+    </div>
   );
 };
 

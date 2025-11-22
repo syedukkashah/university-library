@@ -1,6 +1,6 @@
 {
-  "id": "99531524-d9b4-4d69-b0c5-b02d1a430dcf",
-  "prevId": "79bb98aa-737e-4002-940d-6e34cc8374ed",
+  "id": "66d3bc3d-2316-4155-938e-c05701692ec4",
+  "prevId": "fd986936-c17d-4d90-88f7-cf8150cbeee0",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -17,13 +17,13 @@
         },
         "title": {
           "name": "title",
-          "type": "varchar(225)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
         "author": {
           "name": "author",
-          "type": "varchar(225)",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -35,7 +35,7 @@
         },
         "rating": {
           "name": "rating",
-          "type": "real",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -62,7 +62,7 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": 1
+          "default": 0
         },
         "available_copies": {
           "name": "available_copies",
@@ -156,13 +156,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'BORROWED'"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
         }
       },
       "indexes": {},
@@ -219,9 +212,9 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "full_name": {
-          "name": "full_name",
-          "type": "varchar",
+        "fullname": {
+          "name": "fullname",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -237,14 +230,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "university_card": {
-          "name": "university_card",
+        "password": {
+          "name": "password",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "password": {
-          "name": "password",
+        "university_card": {
+          "name": "university_card",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -254,7 +247,7 @@
           "type": "status",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "'PENDING'"
         },
         "role": {
@@ -262,14 +255,14 @@
           "type": "role",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "'USER'"
         },
         "last_activity_date": {
           "name": "last_activity_date",
           "type": "date",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "now()"
         },
         "created_at": {
@@ -311,33 +304,7 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {
-    "public.borrow_status": {
-      "name": "borrow_status",
-      "schema": "public",
-      "values": [
-        "BORROWED",
-        "RETURNED"
-      ]
-    },
-    "public.role": {
-      "name": "role",
-      "schema": "public",
-      "values": [
-        "USER",
-        "ADMIN"
-      ]
-    },
-    "public.status": {
-      "name": "status",
-      "schema": "public",
-      "values": [
-        "PENDING",
-        "APPROVED",
-        "REJECTED"
-      ]
-    }
-  },
+  "enums": {},
   "schemas": {},
   "sequences": {},
   "roles": {},

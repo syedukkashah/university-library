@@ -1,22 +1,29 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  images:{
-    remotePatterns:[
-      {
-        protocol: "https",
-        hostname:"m.media-amazon.com",
-      },
+  /* config options here */
+  images: {
+    remotePatterns: [
       {
         protocol: "https",
         hostname: "ik.imagekit.io",
-      }
+        port: "",
+      },
+      {
+        protocol: "https",
+        hostname: "m.media-amazon.com",
+        port: "",
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+      },
     ],
   },
-  typescript:{
+  typescript: {
     ignoreBuildErrors: true,
   },
-  esLint:{
+  eslint: {
     ignoreDuringBuilds: true,
   },
 };

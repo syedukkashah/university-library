@@ -1,135 +1,24 @@
 "use server";
+
+import { hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
+import { signIn } from "@/auth";
 import { db } from "@/database/drizzle";
 import { users } from "@/database/schema";
-import { hash } from "bcryptjs";
-import { signIn } from "@/auth";
-import { headers } from "next/headers";
+
+import config from "../config";
 import ratelimit from "../ratelimit";
 
-export const signInWithCredentials = async (
-  params: Pick<AuthCredentials, "email" | "password">, //picking email and pswd from auth creds
-  skipRateLimit?: boolean // Allow skipping rate limit for internal calls
-) => {
-  const { email, password } = params;
+export async function signUp(params: AuthCredentails) {
+  const { fullname, email, universityId, password, universityCard } = params;
 
-  //implemented rate limiting if too many requests for sign in or sign up are made
-  if (!skipRateLimit) {
-    const headersList = await headers();
-    const forwardedFor = headersList.get("x-forwarded-for");
-    const realIp = headersList.get("x-real-ip");
-    const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "127.0.0.1";
+  const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
+  const { success } = await ratelimit.limit(ip);
+  if (!success) return redirect("/too-fast");
 
-    try {
-      const rateLimitResult = await ratelimit.limit(ip);
-      console.log("🔒 Rate limit check (signIn):", {
-        ip,
-        success: rateLimitResult.success,
-        remaining: rateLimitResult.remaining,
-        reset: rateLimitResult.reset,
-        limit: rateLimitResult.limit,
-      });
-
-      if (!rateLimitResult.success) {
-        console.log("❌ Rate limit exceeded - blocking sign in");
-        return {
-          success: false,
-          error: "RATE_LIMITED",
-          rateLimited: true,
-        };
-      }
-      console.log(
-        "✅ Rate limit check passed - proceeding with authentication"
-      );
-    } catch (error) {
-      console.error(
-        "❌ Rate limit error - blocking request for security:",
-        error
-      );
-      // Fail closed: if rate limiting fails, block the request for security
-      return {
-        success: false,
-        error: "RATE_LIMIT_SERVICE_ERROR",
-        rateLimited: true,
-      };
-    }
-  } else {
-    console.log("⏭️  Rate limit skipped (internal call)");
-  }
-
-  // Proceed with authentication only if rate limit check passed
-  try {
-    console.log("🔐 Attempting authentication for:", email);
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-    if (result?.error) {
-      console.log("❌ Authentication failed:", result.error);
-      return { success: false, error: result.error };
-    }
-
-    // Get user role to determine redirect
-    const user = await db
-      .select({ role: users.role })
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-
-    const userRole = user[0]?.role || "USER";
-    console.log("✅ Authentication successful, user role:", userRole);
-
-    return {
-      success: true,
-      role: userRole,
-    };
-  } catch (error) {
-    console.log("❌ Signin error:", error);
-    return { success: false, error: "Signin error" };
-  }
-};
-export const signUp = async (params: AuthCredentials) => {
-  const { fullName, email, universityId, password, universityCard } = params;
-
-  const headersList = await headers();
-  const forwardedFor = headersList.get("x-forwarded-for");
-  const realIp = headersList.get("x-real-ip");
-  const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "127.0.0.1";
-
-  try {
-    const rateLimitResult = await ratelimit.limit(ip);
-    console.log("🔒 Rate limit check (signUp):", {
-      ip,
-      success: rateLimitResult.success,
-      remaining: rateLimitResult.remaining,
-      reset: rateLimitResult.reset,
-      limit: rateLimitResult.limit,
-    });
-
-    if (!rateLimitResult.success) {
-      console.log("❌ Rate limit exceeded - blocking sign up");
-      return {
-        success: false,
-        error: "RATE_LIMITED",
-        rateLimited: true,
-      };
-    }
-    console.log("✅ Rate limit check passed - proceeding with sign up");
-  } catch (error) {
-    console.error(
-      "❌ Rate limit error (signUp) - blocking request for security:",
-      error
-    );
-    // Fail closed: if rate limiting fails, block the request for security
-    return {
-      success: false,
-      error: "RATE_LIMIT_SERVICE_ERROR",
-      rateLimited: true,
-    };
-  }
-
-  // checking if user already exists
   const existingUser = await db
     .select()
     .from(users)
@@ -143,22 +32,55 @@ export const signUp = async (params: AuthCredentials) => {
   const hashedPassword = await hash(password, 10);
 
   try {
-    await db.insert(users).values({
-      fullName,
+    await db
+      .insert(users)
+      .values({
+        fullname,
+        email,
+        universityId,
+        password: hashedPassword,
+        universityCard,
+      });
+
+    // sign in on behalf of the new user
+    await signInWithCredentials({ email, password });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in signup:", error);
+    return {
+      success: false,
+      error: `An error occurred during sign up. ${error}`,
+    };
+  }
+}
+
+export async function signInWithCredentials(
+  params: Pick<AuthCredentails, "email" | "password">
+) {
+  const { email, password } = params;
+
+  const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
+  const { success } = await ratelimit.limit(ip);
+  if (!success) return redirect("/too-fast");
+
+  try {
+    const result = await signIn("credentials", {
       email,
-      universityId,
-      password: hashedPassword,
-      universityCard,
+      password,
+      redirect: false,
     });
 
-    const signInResult = await signInWithCredentials({ email, password }, true); // Skip rate limit for internal call
-    // New users are always "USER" by default
-    return {
-      success: signInResult.success,
-      role: "USER",
-    };
+    if (result?.error) {
+      return { success: false, error: "Invalid email or password" };
+    }
+
+    return { success: true };
   } catch (error) {
-    console.log(error, "Signup error");
-    return { success: false, error: "Signup error" };
+    console.error("Error in signin:", error);
+    return {
+      success: false,
+      error: `An error occurred during sign in. ${error}`,
+    };
   }
-};
+}

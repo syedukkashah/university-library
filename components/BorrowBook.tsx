@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "./ui/button";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // Changed from next/router
-import { toast } from "sonner";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { Button } from "./ui/button";
+import { toast } from "@/hooks/use-toast";
 import { borrowBook } from "@/lib/actions/book";
 
 interface Props {
@@ -16,32 +17,44 @@ interface Props {
   };
 }
 
-const BorrowBook = ({ // Removed async
-  userId,
-  bookId,
-  borrowingEligibility: { isEligible, message },
-}: Props) => {
+const BorrowBook = ({ userId, bookId, borrowingEligibility }: Props) => {
   const router = useRouter();
   const [borrowing, setBorrowing] = useState(false);
-  
-  const handleBorrow = async () => {
-    if (!isEligible) {
-      toast.error(message);
-      return; // Added return to stop execution
+
+  const handleBorrowBook = async () => {
+    if (!borrowingEligibility.isEligible) {
+      toast({
+        title: "Error",
+        description: borrowingEligibility.message,
+        variant: "destructive",
+      });
+      return;
     }
 
     setBorrowing(true);
-
     try {
       const result = await borrowBook({ bookId, userId });
       if (result.success) {
-        toast.success("Book borrowed successfully");
+        toast({
+          title: "Success",
+          description: "Book borrowed successfully.",
+        });
+
         router.push("/my-profile");
       } else {
-        toast.error("An error occurred while borrowing the book");
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      toast.error("An error occurred while borrowing the book");
+      console.log(error);
+
+      toast({
+        title: "Error",
+        description: "Failed to borrow book.",
+      });
     } finally {
       setBorrowing(false);
     }
@@ -50,12 +63,13 @@ const BorrowBook = ({ // Removed async
   return (
     <Button
       className="book-overview_btn"
-      onClick={handleBorrow}
+      onClick={handleBorrowBook}
       disabled={borrowing}
     >
       <Image src="/icons/book.svg" alt="book" width={20} height={20} />
+
       <p className="font-bebas-neue text-xl text-dark-100">
-        {borrowing ? 'Borrowing...' : 'Borrow Book'}
+        {borrowing ? "Borrowing..." : "Borrow Book Request"}
       </p>
     </Button>
   );

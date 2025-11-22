@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useClickAway, useDebounce } from "react-use";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
 interface Props {
@@ -6,18 +7,38 @@ interface Props {
   onPickerChange: (color: string) => void;
 }
 
-const ColorPicker: React.FC<Props> = ({ value, onPickerChange }) => {
+const ColorPicker = ({ value, onPickerChange }: Props) => {
+  const popoverRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [color, setColor] = useState(value || "#000000");
+
+  useDebounce(() => onPickerChange(color), 500, [color]);
+  useClickAway(popoverRef, () => setIsOpen(false));
+
   return (
     <div className="relative">
-      <div className="flex flex-row items-center">
-        <p>#</p>
-        <HexColorInput
-          color={value}
-          onChange={onPickerChange}
-          className="hex-input"
+      <div className="color-picker">
+        <div
+          className="size-5 cursor-pointer rounded-sm"
+          style={{ backgroundColor: color }}
+          onClick={() => setIsOpen((prev) => !prev)}
         />
+
+        <div className="flex flex-row items-center">
+          <p>#</p>
+          <HexColorInput
+            color={color}
+            onChange={setColor}
+            className="hex-input"
+          />
+        </div>
       </div>
-      <HexColorPicker color={value} onChange={onPickerChange} />
+
+      {isOpen && (
+        <div className="hex-color-picker" ref={popoverRef}>
+          <HexColorPicker color={color} onChange={setColor} />
+        </div>
+      )}
     </div>
   );
 };
