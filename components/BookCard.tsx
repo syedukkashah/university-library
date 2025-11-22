@@ -4,6 +4,7 @@ import BookCover from '@/components/BookCover';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Book } from '@/types';
 
 const BookCard = ({id, title,  genre, coverColor, coverUrl, isLoanedBook = false,}:Book) => {
   return (
